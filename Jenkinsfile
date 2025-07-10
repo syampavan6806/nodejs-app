@@ -7,48 +7,47 @@ pipeline {
     }
 
     environment {
-        ARTIFACT = 'nodejs-app-${BUILD_NUMBER}.tar.gz'
-        REMOTE_HOST = 'your.server.ip'
+        REMOTE_HOST = '172.31.123.145' // Replace with your server's IP or hostname
         REMOTE_USER = 'ec2-user'
         REMOTE_PATH = '/home/ec2-user/nodejs-app'
         SSH_CREDENTIALS = 'NodeServerSSHKey'
     }
 
     stages {
+       
+        /* 
+           Stage to install dependencies to ensure the project is ready for deployment
+           It uses npm to install the dependencies defined in package.json. 
+           This is a crucial step to avoid runtime errors due to missing packages.
+           It is executed on the Jenkins agent where the pipeline is running.   
+        */
+        
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Bump Version') {
+        stage('Transfer to Remote Server') {
             steps {
-                sh 'npm version patch --no-git-tag-version'
-            }
-        }
-
-        stage('Build Artifact') {
-            steps {
-                sh 'npm run build'
-            }
-        }
-
-        stage('Upload to Nexus') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'NexusCreds', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                    sh 'export NEXUS_USER=$NEXUS_USER && export NEXUS_PASSWORD=$NEXUS_PASSWORD && npm run deploy'
+                sshagent([env.SSH_CREDENTIALS]) {
+                    sh '''
+                        ssh $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH"
+                        rsync -avz --exclude=node_modules --exclude=.git ./ $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/
+                    '''
                 }
             }
         }
 
-        stage('Deploy on Node.js Server') {
+        stage('Install & Deploy using Local PM2') {
             steps {
                 sshagent([env.SSH_CREDENTIALS]) {
                     sh '''
-                    ssh $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH"
-                    ssh $REMOTE_USER@$REMOTE_HOST "wget --user=admin --password=admin123 https://nexus.example.com/repository/nodejs-releases/nodejs-app/1.0.0/nodejs-app-1.0.0.tar.gz -O /tmp/nodejs-app.tar.gz"
-                    ssh $REMOTE_USER@$REMOTE_HOST "rm -rf $REMOTE_PATH/* && tar -xzf /tmp/nodejs-app.tar.gz -C $REMOTE_PATH"
-                    ssh $REMOTE_USER@$REMOTE_HOST "cd $REMOTE_PATH && npm install && pm2 start app.js --name my-app --update-env"
+                        ssh $REMOTE_USER@$REMOTE_HOST "
+                            cd $REMOTE_PATH &&
+                            npm install &&
+                            npx pm2 start app.js --name my-app --update-env || npx pm2 restart my-app
+                        "
                     '''
                 }
             }
