@@ -19,5 +19,10 @@
     "gulp-gzip": "^1.4.2",
     "gulp-tar": "^2.1.0",
     "pm2": "^6.0.8"
+  },
+ "config": {
+    "nexusReleaseUrl": "https://nexus.example.com/repository/node-releases/",
+    "nexusSnapshotUrl": "https://nexus.example.com/repository/node-snapshots/"
   }
 }
+

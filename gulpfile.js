@@ -1,5 +1,3 @@
-
-require('dotenv').config();
 const gulp = require('gulp');
 const tar = require('gulp-tar');
 const gzip = require('gulp-gzip');
@@ -7,10 +5,19 @@ const fs = require('fs');
 const axios = require('axios');
 const path = require('path');
 
-const appName = process.env.APP_NAME || 'nodejs-app';
-const version = process.env.VERSION || '1.0.0';
+const pkg = require('./package.json');
+const appName = pkg.name || 'node-app';
+const version = pkg.version || '1.0.0';
+const isSnapshot = version.includes('SNAPSHOT');
+
 const artifact = `${appName}-${version}.tar.gz`;
-const nexusUrl = process.env.NEXUS_URL;
+
+const baseUrl = isSnapshot
+  ? process.env.NEXUS_SNAPSHOT_URL || pkg.config.nexusSnapshotUrl
+  : process.env.NEXUS_RELEASE_URL || pkg.config.nexusReleaseUrl;
+
+const username = process.env.NEXUS_USER;
+const password = process.env.NEXUS_PASSWORD;
 
 gulp.task('build', () => {
   return gulp.src([
@@ -33,11 +40,9 @@ gulp.task('deploy', async function () {
     process.exit(1);
   }
 
-  const targetUrl = `${nexusUrl}${appName}/${version}/${artifact}`;
-  const username = process.env.NEXUS_USER;
-  const password = process.env.NEXUS_PASSWORD;
-
+  const targetUrl = `${baseUrl}${appName}/${version}/${artifact}`;
   const stream = fs.createReadStream(filePath);
+
   try {
     const response = await axios.put(targetUrl, stream, {
       auth: { username, password },
