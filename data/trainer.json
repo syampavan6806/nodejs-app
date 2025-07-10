@@ -1,0 +1,14 @@
+{
+  "trainer": {
+    "name": "Balaji Reddy Lachhannagari",
+    "email": "rushitechnoligesbanglore@gmail.com",
+    "phone": "+91-9900012028"
+  },
+  "courses": [
+    "DevOps Master Program",
+    "AWS with Terraform",
+    "Kubernetes Advanced",
+    "CI/CD with Jenkins & GitHub",
+    "Generative AI for DevOps"
+  ]
+}
