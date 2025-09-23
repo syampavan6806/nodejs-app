@@ -1,8 +1,8 @@
 {
   "trainer": {
-    "name": "Balaji Reddy Lachhannagari",
-    "email": "rushitechnoligesbanglore@gmail.com",
-    "phone": "+91-9900012028,+91-8296242028"
+    "name": "Mohit Sriram Nagandla",
+    "email": "mohitsriram@gmail.com",
+    "phone": "+91-8977526806,+91-9440405140"
   },
   "courses": [
     "DevOps Master Program",
@@ -11,5 +11,6 @@
     "CI/CD with Jenkins & GitHub",
     "Generative AI for DevOps",
     "Terraform for DevOps"
+    "Azure with Terraform"
   ]
 }
