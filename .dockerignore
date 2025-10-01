@@ -1,0 +1,6 @@
+Dockerfile
+Jenkinsfile 
+README.md 
+*.log
+*.tmp
+node_modules/
